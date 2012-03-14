@@ -33,11 +33,6 @@
   (call-with-input-file "fannkuch-redux-permutations.txt"
     parse-example-file))
 
-
-(require profile)
-
-(profile-thunk (λ () (for-each fannkuch permutations)))
-
 (test-case
  "flipping works"
  (check-equal? (map (λ (x) (car (fannkuch x))) input) output))
@@ -47,7 +42,8 @@
  (check-equal? (fannkuch-checksum permutations) 228))
 
 
-
+(require profile)
+(profile-thunk (λ () (fannkuch-checksum permutations)))
 
 
 

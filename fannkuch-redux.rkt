@@ -28,8 +28,5 @@
   (define (fc-iter loi sum index)
     (if [null? loi]
         sum
-        (let ([count (cdr (fannkuch (car loi)))])
-          (if [even? index]              
-              (fc-iter (cdr loi) (+ sum count) (add1 index))
-              (fc-iter (cdr loi) (- sum count) (add1 index))))))
+        (fc-iter (cdr loi) ((if (even? index) + -) sum (cdr (fannkuch (car loi)))) (add1 index))))          
   (fc-iter listofinput 0 0))
