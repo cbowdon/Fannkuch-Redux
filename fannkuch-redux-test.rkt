@@ -34,12 +34,13 @@
     parse-example-file))
 
 (test-case
- "flipping works"
+ "fannkuch works"
  (check-equal? (map (λ (x) (car (fannkuch x))) input) output))
 
 (test-case
- "checksum works"
- (check-equal? (fannkuch-checksum permutations) 228))
+ "fannkuch-checksum works"
+ (check-equal? (car (fannkuch-checksum permutations)) 228)
+ (check-equal? (cdr (fannkuch-checksum permutations)) 16))
 
 
 (require profile)

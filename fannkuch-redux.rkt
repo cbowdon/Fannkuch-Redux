@@ -16,17 +16,21 @@
         (cons lst number-of-flips)
         (flip (flip-iter lst (drop lst (car lst)) (car lst)) (add1 number-of-flips))))  
   (define (flip-iter source result count)
-      (if [= count 0]
-          result
-          (flip-iter (cdr source) (cons (car source) result) (sub1 count))))    
+    (if [= count 0]
+        result
+        (flip-iter (cdr source) (cons (car source) result) (sub1 count))))    
   (flip input 0))
 
 ; checksum-keeping version of fannkuch for mapping
 ; (-> (listof (listof positive-integer?)) positive-integer?)
 ; checksum = checksum + (if permutation_index is even then flips_count else -flips_count)
 (define (fannkuch-checksum listofinput)
-  (define (fc-iter loi sum index)
+  (define (fc-iter loi sum index max-nflips)
     (if [null? loi]
-        sum
-        (fc-iter (cdr loi) ((if (even? index) + -) sum (cdr (fannkuch (car loi)))) (add1 index))))          
-  (fc-iter listofinput 0 0))
+        (cons sum max-nflips)
+        (let ([count (cdr (fannkuch (car loi)))])
+          (fc-iter (cdr loi) 
+                   ((if (even? index) + -) sum count) 
+                   (add1 index)
+                   (if (> count max-nflips) count max-nflips)))))          
+  (fc-iter listofinput 0 0 0))
