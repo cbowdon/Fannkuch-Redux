@@ -40,11 +40,11 @@
 
 (test-case
  "flipping works"
- (check-equal? (map 
-                (λ (x) (call-with-values (λ () (fannkuch x)) (compose car cons))) 
-                input) 
-               output))
+ (check-equal? (map (λ (x) (car (fannkuch x))) input) output))
 
+(test-case
+ "checksum works"
+ (check-equal? (fannkuch-checksum permutations) 228))
 
 
 

@@ -2,16 +2,18 @@
 
 (require racket/list)
 
-(provide fannkuch)
+(provide fannkuch
+         fannkuch-checksum)
 
 ; flips first (car list) elements of a list until (car list) is 1
-; (-> (listof positive-integer?) (listof positive-integer?))
+; returns flipped list and number of flips it required
+; (-> (listof positive-integer?) (cons (listof positive-integer?) positive-integer?))
 ; I think this is O(n^2/4)
 ; dropping a list should be O(n/2) and reversing a sublist (average length n/2) should be O(n/2)
 (define (fannkuch input)
   (define (flip lst number-of-flips)
     (if [= (car lst) 1]
-        (values lst number-of-flips)
+        (cons lst number-of-flips)
         (flip (flip-iter lst (drop lst (car lst)) (car lst)) (add1 number-of-flips))))  
   (define (flip-iter source result count)
       (if [= count 0]
@@ -19,5 +21,15 @@
           (flip-iter (cdr source) (cons (car source) result) (sub1 count))))    
   (flip input 0))
 
-
-
+; checksum-keeping version of fannkuch for mapping
+; (-> (listof (listof positive-integer?)) positive-integer?)
+; checksum = checksum + (if permutation_index is even then flips_count else -flips_count)
+(define (fannkuch-checksum listofinput)
+  (define (fc-iter loi sum index)
+    (if [null? loi]
+        sum
+        (let ([count (cdr (fannkuch (car loi)))])
+          (if [even? index]              
+              (fc-iter (cdr loi) (+ sum count) (add1 index))
+              (fc-iter (cdr loi) (- sum count) (add1 index))))))
+  (fc-iter listofinput 0 0))
