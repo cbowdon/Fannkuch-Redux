@@ -30,7 +30,8 @@
         (cons sum max-nflips)
         (let ([count (cdr (fannkuch (car loi)))])
           (fc-iter (cdr loi) 
-                   ((if (even? index) + -) sum count) 
+                   ((if [even? index] + -) sum count) 
                    (add1 index)
-                   (if (> count max-nflips) count max-nflips)))))          
+                   (if [> count max-nflips] count max-nflips)))))          
   (fc-iter listofinput 0 0 0))
+
