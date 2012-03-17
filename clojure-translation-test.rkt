@@ -47,17 +47,17 @@
  "Next permutation"
  (check-equal? (perm-p (next-permutation 7 (car init-7))) (cadr permutations)))
 
-(define (test-perm n initial limit)
+(define (test-perm n initial [limit 30])
   (define (p-iter n p results count)
     (if [or (false? p) (>= (add1 count) limit)]
         results
         (p-iter n (next-permutation n p) (cons (next-permutation n p) results) (add1 count))))
   (reverse (p-iter n initial (cons initial '()) 0)))
 
-(length permutations)
-
-(define n-to-print 30)
+(define n-to-print 5040)
 (for-each 
- (λ (x y) (printf "~a\t~a\t~a\n" (perm-p x) (perm-s x) y))
+ (λ (x y) (printf "~a\t\t~a\n" (perm-p x) y))
   (test-perm 7 (car init-7) n-to-print)
   (take permutations n-to-print))
+
+;(for-each print-perm (test-perm 7 (car init-7) n-to-print))
