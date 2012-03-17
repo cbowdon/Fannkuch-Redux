@@ -40,7 +40,12 @@
 ;; The profiling suggests that most time (68%) is spent in flip, in fannkuch, in pfannkuchen.
 ;; I think that function is O(n^2/4) time, but don't know how it could be improved.
 ;; Making it mutable is likely to reduce performance, according to the Racket Guide.
-;; The remaining time is spent in the permutations and particularly in a few helper functions.
+;; I'm leaving that to one side for the moment.
+;; The remaining time is spent in the permutations and particularly in a few helper functions:
+;; swap-at-indices (4.5%)
+;; apply-to-index (1.4%)
+;; rotate-left-first-n (1.4%)
+;; set-at-index (1.0%)
 
 ;;============================================================================
 ;;                                  Caller
@@ -75,8 +80,3 @@
 ;;                                  np-iter [14]                        100.0%
 ;;[18]   349(1.0%)     349(1.0%)  set-at-index ...redux/clojure-translation.rkt:53:0
 ;;----------------------------------------------------------------------------
-;;                                  rotate-left-first-n [17]             49.8%
-;;                                  apply-to-index [16]                  50.2%
-;;[19]   110(0.3%)     110(0.3%)  loop ...cket v5.2.1/collects/racket/list.rkt:106:2
-;;----------------------------------------------------------------------------
-;;> 

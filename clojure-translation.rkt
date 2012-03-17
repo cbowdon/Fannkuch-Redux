@@ -60,7 +60,6 @@
   ; TODO: this could be optimized
   (append (cdr (take p n)) (list (car p)) (drop p n)))
 
-
 ; returns array but with swapped values at indices
 ; (-> list? exact-nonnegative-integer? exact-nonnegative-integer? list?)
 (define (swap-at-indices p i j)
