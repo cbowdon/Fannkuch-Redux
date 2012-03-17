@@ -45,12 +45,12 @@
 
 (define (apply-to-index proc lst index)
   ; TODO: this could be optimized easily
-  ; TODO: unit tests    
   (append (take lst index) 
           (list (proc (list-ref lst index))) 
           (drop lst (add1 index))))
 
 (define (set-at-index lst index val)
+  ; TODO: could this be optimized?
   (append (take lst index) 
           (list val) 
           (drop lst (add1 index))))
@@ -58,7 +58,6 @@
 ; (-> (listof number?) number? (listof number?)) 
 (define (rotate-left-first-n p n) 
   ; TODO: this could be optimized
-  ; TODO: unit tests
   (append (cdr (take p n)) (list (car p)) (drop p n)))
 
 
@@ -66,7 +65,6 @@
 ; (-> list? exact-nonnegative-integer? exact-nonnegative-integer? list?)
 (define (swap-at-indices p i j)
   ; TODO: i think this could be optimized
-  ; TODO: unit tests
   (let* ([a (min i j)]
          [b (max i j)]
          [head (take p a)]
