@@ -38,14 +38,12 @@
         (equal? (perm-c x) (perm-c y))
         (equal? (perm-s x) (perm-s y)))))
 
-(define (test-perm n initial [limit 1e4])
-  (define (p-iter n p results count)
+(define (test-perm initial [limit 1e4])
+  (define (p-iter p results count)
     (if [or (false? p) (>= (add1 count) limit)]
         (cdr results)
-        (p-iter n (next-permutation n p) (cons (next-permutation n p) results) (add1 count))))
-  (reverse (p-iter n initial (cons initial '()) 0)))
-
-
+        (p-iter (next-permutation p) (cons (next-permutation p) results) (add1 count))))
+  (reverse (p-iter initial (cons initial '()) 0)))
 
 (test-case 
  "Initial permutations correct"
@@ -53,32 +51,31 @@
  (for-each (λ (x y) (check-equal-perm? x y)) init-6 init-6-ans) 
  (check-equal? (length (init-permutations 7)) 7))
 
-
 (test-case
  "All permutations correct"
  ; length correct (and dependent on starting perm)
- (check-equal? (length (test-perm 7 (car init-7))) (length permutations))
- (check-equal? (length (test-perm 6 (second init-6))) 600)
- (check-equal? (length (test-perm 6 (third init-6))) 480)
- (check-equal? (length (test-perm 6 (fourth init-6))) 360)
- (check-equal? (length (test-perm 6 (fifth init-6))) 240)
- (check-equal? (length (test-perm 6 (sixth init-6))) 120)
+ (check-equal? (length (test-perm (car init-7))) (length permutations))
+ (check-equal? (length (test-perm (second init-6))) 600)
+ (check-equal? (length (test-perm (third init-6))) 480)
+ (check-equal? (length (test-perm (fourth init-6))) 360)
+ (check-equal? (length (test-perm (fifth init-6))) 240)
+ (check-equal? (length (test-perm (sixth init-6))) 120)
  ; syncs up with the other initials
- (check-equal-perm? (list-ref (test-perm 6 (first init-6)) 120) (second init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (first init-6)) 240) (third init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (first init-6)) 360) (fourth init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (first init-6)) 480) (fifth init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (first init-6)) 600) (sixth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (first init-6)) 120) (second init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (first init-6)) 240) (third init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (first init-6)) 360) (fourth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (first init-6)) 480) (fifth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (first init-6)) 600) (sixth init-6-ans))
  ; syncs up with the other initials (diff starting perm)
- (check-equal-perm? (list-ref (test-perm 6 (second init-6)) 0) (second init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (second init-6)) 120) (third init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (second init-6)) 240) (fourth init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (second init-6)) 360) (fifth init-6-ans))
- (check-equal-perm? (list-ref (test-perm 6 (second init-6)) 480) (sixth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (second init-6)) 0) (second init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (second init-6)) 120) (third init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (second init-6)) 240) (fourth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (second init-6)) 360) (fifth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (second init-6)) 480) (sixth init-6-ans))
  ; syncs up with the other initials (diff starting perm)
- (check-equal-perm? (list-ref (test-perm 6 (fifth init-6)) 120) (sixth init-6-ans))
+ (check-equal-perm? (list-ref (test-perm (fifth init-6)) 120) (sixth init-6-ans))
  ; thorough check against the file
  (for-each
   (λ (x y) (check-equal? (perm-p x) y))
-  (test-perm 7 (car init-7))
+  (test-perm (car init-7))
   permutations))

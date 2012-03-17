@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/list)
+(require racket/list
+         racket/contract)
 
 (provide fannkuch
          fannkuch-checksum)
@@ -22,7 +23,7 @@
   (flip input 0))
 
 ; checksum-keeping version of fannkuch for mapping
-; (-> (listof (listof positive-integer?)) positive-integer?)
+; (-> (listof (listof positive-integer?)) (cons integer? positive-integer?))
 ; checksum = checksum + (if permutation_index is even then flips_count else -flips_count)
 (define (fannkuch-checksum listofinput)
   (define (fc-iter loi sum index max-nflips)

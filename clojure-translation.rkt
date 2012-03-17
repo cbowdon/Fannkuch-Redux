@@ -79,9 +79,10 @@
             end)))
 
 ; (-> exact-nonnegative-integer? perm? perm?)
-(define (next-permutation n op)
+(define (next-permutation op)
   (if [negative? (perm-s op)]      
-      (let ([spn (swap-at-indices (perm-p op) 1 2)])        
+      (let ([n (length (perm-p op))] ; n could be passed in as an argument, for a minute speedup
+            [spn (swap-at-indices (perm-p op) 1 2)])        
         (define (np-iter i p c)
           (cond [(= i n) (perm p 1 c)] ; return (new perm, old count)
                 [(not (= (list-ref c i) 1)) (perm p 1 (sub1-at-index c i))] ; sub1 from count index j, return (new perm, new count)
