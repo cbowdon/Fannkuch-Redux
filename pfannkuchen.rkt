@@ -6,10 +6,12 @@
 (provide pfannkuchen)
 
 (define (fannkuch input)
+  ; flip-iter is aux to flip - it performs a single rearrangement
   (define (flip-iter source result count)
     (if [= count 0]
         result
         (flip-iter (cdr source) (cons (car source) result) (sub1 count))))      
+  ; flip is aux to fannkuch - it flip-iters until (car lst) is 1
   (define (flip lst number-of-flips)
     (let ([l (car lst)])
       (if [= l 1]

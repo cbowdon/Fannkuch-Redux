@@ -37,21 +37,16 @@
 
 ;(profile-thunk (λ () (pfannkuchen 10)))
 
+;; The profiling suggests that most time (68%) is spent in flip, in fannkuch, in pfannkuchen.
+;; I think that function is O(n^2/4) time, but don't know how it could be improved.
+;; Making it mutable is likely to reduce performance, according to the Racket Guide.
+;; The remaining time is spent in the permutations and particularly in a few helper functions.
+
 ;;============================================================================
 ;;                                  Caller
 ;; Idx    Total         Self      Name+src                              Local%
 ;;        ms(pct)       ms(pct)     Callee
 ;;============================================================================
-;;----------------------------------------------------------------------------
-;;                                  profile-thunk12 [9]                 100.0%
-;;[10] 34776(100.0%)  1038(3.0%)  run ...acket v5.2.1/collects/profile/main.rkt:29:2
-;;                                  pfiter [11]                          97.0%
-;;----------------------------------------------------------------------------
-;;                                  run [10]                            100.0%
-;;[11] 33737(97.0%)   2401(6.9%)  pfiter ...3-14-fannkuch-redux/pfannkuchen.rkt:24:8
-;;                                  flip [12]                            71.6%
-;;                                  next-permutation [13]                13.6%
-;;                                  np-iter [14]                          7.7%
 ;;----------------------------------------------------------------------------
 ;;                                  pfiter [11]                         100.0%
 ;;[12] 24170(69.5%)  23863(68.6%) flip ...2-03-14-fannkuch-redux/pfannkuchen.rkt:9:2
