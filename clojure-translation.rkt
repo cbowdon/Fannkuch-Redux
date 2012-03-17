@@ -81,7 +81,7 @@
 ; (-> exact-nonnegative-integer? perm? perm?)
 (define (next-permutation n op)
   (if [negative? (perm-s op)]      
-      (let ([opn (swap-at-indices (perm-p op) 1 2)])        
+      (let ([spn (swap-at-indices (perm-p op) 1 2)])        
         (define (np-iter i p c)
           (cond [(= i n) (perm p 1 c)] ; return (new perm, old count)
                 [(not (= (list-ref c i) 1)) (perm p 1 (sub1-at-index c i))] ; sub1 from count index j, return (new perm, new count)
@@ -89,5 +89,11 @@
                 [else 
                  (let ([i+1 (add1 i)])                        
                    (np-iter i+1 (rotate-left-first-n p (add1 i+1)) (set-at-index c i i+1)))]))
-        (np-iter 2 opn (perm-c op)))
+        (np-iter 2 spn (perm-c op)))
       (perm (swap-at-indices (perm-p op) 0 1) -1 (perm-c op))))
+
+; TODO
+; make the job dividing function:
+; for each of the n initial permutations
+; generate the next (n-1)! permutations
+; (combined, these should be the same as the whole list if gen'd from just 1 2 3...n.)
