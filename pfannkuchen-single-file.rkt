@@ -1,7 +1,8 @@
 #lang racket/base
 
 (require racket/list
-         racket/contract)
+         racket/contract
+         racket/cmdline)
 
 (provide (contract-out 
           [pfannkuchen (-> exact-positive-integer? pair?)]))
@@ -101,7 +102,7 @@
   (define (single-flip source result count)
     (if [= count 0]
         result
-        (single-flip (cdr source) (cons (car source) result) (sub1 count))))      
+        (single-flip (cdr source) (cons (car source) result) (sub1 count))))
   ;; flip until (car lst) is 1
   (define (multi-flip lst number-of-flips)
     (let ([l (car lst)])
@@ -120,12 +121,24 @@
       (let ([lst (build-list n (λ (x) (add1 x)))])
         (define (pfiter p checksum maxflips)
           (if [not p]
-              (cons checksum maxflips)
+              (begin                
+                (printf "~a~nPfannkuchen(~a) = ~a~n" checksum n maxflips)
+                (cons checksum maxflips))              
               (let ([flips (fannkuch (perm-p p))])
                 (pfiter (next-permutation p)
                         ((if [> (perm-s p) 0] + -) checksum flips)
                         (if [> flips maxflips] flips maxflips)))))  
         (pfiter (perm lst 1 lst) 0 0))))
+
+(pfannkuchen (command-line #:program "pfannkuchen"
+                           #:args (n)
+                           (string->number n)))
+
+;; Test timings
+;; 12 : 1304s
+;; 11 : 100s 99.5 99.8
+;; 10 : 8.1s
+;; 9 : 0.7s
 
 ;; TODO
 ;; make the job dividing function:
