@@ -119,20 +119,21 @@
   (if [< n 3] 
       #f
       (let ([lst (build-list n (λ (x) (add1 x)))])
-        (define (pfiter p checksum maxflips)
+        (define (pf-iter p checksum maxflips)
           (if [not p]
               (begin                
                 (printf "~a~nPfannkuchen(~a) = ~a~n" checksum n maxflips)
                 (cons checksum maxflips))              
               (let ([flips (fannkuch (perm-p p))])
-                (pfiter (next-permutation p)
-                        ((if [> (perm-s p) 0] + -) checksum flips)
-                        (if [> flips maxflips] flips maxflips)))))  
-        (pfiter (perm lst 1 lst) 0 0))))
+                (pf-iter (next-permutation p)
+                         ((if [> (perm-s p) 0] + -) checksum flips)
+                         (if [> flips maxflips] flips maxflips)))))  
+        (pf-iter (perm lst 1 lst) 0 0))))
 
-(pfannkuchen (command-line #:program "pfannkuchen"
-                           #:args (n)
-                           (string->number n)))
+(require profile)
+(profile (pfannkuchen (command-line #:program "pfannkuchen"
+                                    #:args (n)
+                                    (string->number n))))
 
 ;; Test timings
 ;; 12 : 1304s
