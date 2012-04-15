@@ -39,28 +39,32 @@
            (vector-set! source (- n count 1) (car first-n))    
            (one-by-one source (cdr first-n) n (add1 count)))]))
 
-
+;; Tests
 (define n 1)
 (define v (vector 12 11 10 9 8 7 6 5 4 3 2 1)) ; is mutated. Shouldn't make time difference though (?)
 (define s (list 12 11 10 9 8 7 6 5 4 3 2 1))
 
+;;; Uncomment this for massive fun!
 ;(time-repeat (single-flip s (drop s n) n) #:repeat 1e7)
 ;(time-repeat (reverse-first-n v n) #:repeat 1e7)
 ;(time-repeat (one-by-one v (vector->list (vector-take v n)) n 0) #:repeat 1e7)
 
+;; Results
 (define sf-times (list 503 689 876 1077 1458 1662 1906 2231 2398 2761 2898 3267))
 (define rfn-times (list 4299 4981 5557 6003 6953 7419 8150 8914 9407 10342 11329 11712))
 (define obo-times (list 2418 2840 3276 3790 4321 4820 5429 6115 6630 7067 7566 8268))
 (define errors-ms (build-list 12 (λ (x) 200))) ; generously assuming up to 200 ms error
 (define ns (build-list 12 values))
 
+;; Plotting results
 (require plot)
-(parameterize ([plot-x-label "n"]
+(parameterize ([plot-title "Timing comparison of versions"]
+               [plot-x-label "n"]
                [plot-y-label "Time for 10m runs (ms)"])
   (plot (list (tick-grid)
-              (points (map vector ns sf-times) #:label "List" #:sym 'circle #:color 'blue)
-              (points (map vector ns rfn-times) #:label "Naive vector" #:sym 'triangle #:color 'red)
-              (points (map vector ns obo-times) #:label "Iterative vector" #:sym 'diamond #:color 'darkgreen)
+              (points (map vector ns sf-times) #:label "1. List" #:sym 'circle #:color 'blue)
+              (points (map vector ns rfn-times) #:label "2. Naive vector" #:sym 'triangle #:color 'red)
+              (points (map vector ns obo-times) #:label "3. Iterative vector" #:sym 'diamond #:color 'darkgreen)
               (error-bars (map vector ns sf-times errors-ms) #:color 'blue)
               (error-bars (map vector ns rfn-times errors-ms) #:color' red)
               (error-bars (map vector ns obo-times errors-ms) #:color 'darkgreen))))
