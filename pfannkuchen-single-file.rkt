@@ -7,7 +7,6 @@
 (provide (contract-out 
           [pfannkuchen (-> exact-positive-integer? pair?)]))
 
-
 ;; Three parts to this program - permutation algorithm, 
 ;; 'pancake flipping' fannkuch algorithm and main, which applies fannkuch
 ;; to each of the permutations and generates a checksum
@@ -21,7 +20,8 @@
 (struct perm (p s c))
 (define (print-perm x) (printf "~a\t~a\t~a\n" (perm-p x) (perm-s x) (perm-c x)))
 
-;; initializes n-1 permutations - this will be used for parallelization 
+;; initializes n-1 permutations - this will be used for parallelization
+;; isn't actually used in the serial implementation
 (define (init-permutations n)
   (let ([n-1 (sub1 n)])
     (define (ip-iter i p c all)      
@@ -48,10 +48,6 @@
                    (np-iter i+1 (rotate-left-first-n p (add1 i+1)) (set-at-index c i i+1)))]))
         (np-iter 2 spn (perm-c op)))
       (perm (swap-at-indices (perm-p op) 0 1) -1 (perm-c op))))
-
-;; Profiling note: these following auxiliary functions
-;; make up about 20% of the run time in total. To be optimized,
-;; but low priority.
 
 ;; return list that is identical to lst but with 1 subtracted from the nth element
 ;; (-> (listof number?) number? (listof number?))
@@ -93,9 +89,6 @@
 
 ;;;;;;;;;;;;;;;;;; PANCAKE FLIPPING
 
-;; Profiling note: 70% of time is spent here
-;; How to optimize?
-
 ;; perform flipping on a single permutation, return number of flips
 (define (fannkuch input)
   ;; perform a single rearrangement
@@ -130,20 +123,31 @@
                          (if [> flips maxflips] flips maxflips)))))  
         (pf-iter (perm lst 1 lst) 0 0))))
 
-(require profile)
-(profile (pfannkuchen (command-line #:program "pfannkuchen"
-                                    #:args (n)
-                                    (string->number n))))
+(pfannkuchen (command-line #:program "pfannkuchen"
+                           #:args (n)
+                           (string->number n)))
 
-;; Test timings
+
+;; Test timings on an Intel Core i3, Win 7 (Dell Studio 1558)
 ;; 12 : 1304s
-;; 11 : 100s 99.5 99.8
+;; 11 : 100s
 ;; 10 : 8.1s
 ;; 9 : 0.7s
 
 ;; TODO
-;; make the job dividing function:
-;; for each of the n initial permutations
-;; generate the next (n-1)! permutations
-;; (combined, these should be the same as the whole list if gen'd from just 1 2 3...n.)
-;; i.e. parallelize this
+;; Parallelize this
+;; i.e. Make the job dividing function:
+;; For each of the n initial permutations generate the next (n-1)! permutations
+;; (combined, these should be the same as the whole list if gen'd from just 1 2 3...n).
+;; Checksum = sum of checksums of n separate (n-1)! permutations
+;; Max flips = max of max flips of n separate (n-1)! permutations
+;; 
+;; Pseudocode
+;; (parallel-map pfannkuchen-of-next-(n-1)!-permutations 
+;;               (init permutations n)) 
+;; --> (listof (cons checksum maxflips))
+;; ---> answers are (foldl + 0 n-checksums) (max n-maxflips)
+;; where pfannkuchen-of-next-(n-1)!-permutations is just pfannkuchen above,
+;; but using (next-k-permutations op k) where k = (n-1)!
+;; Presumably some kind of concurrent mutable data structure will be required
+;; for the final step of adding the checksums and maxflips
