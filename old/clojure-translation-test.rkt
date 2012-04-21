@@ -38,6 +38,7 @@
         (equal? (perm-c x) (perm-c y))
         (equal? (perm-s x) (perm-s y)))))
 
+;; test a range (using next-permutation)
 (define (test-perm initial [limit 1e4])
   (define (p-iter p results count)
     (if [or (false? p) (>= (add1 count) limit)]

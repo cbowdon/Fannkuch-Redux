@@ -14,77 +14,69 @@
 
 ;;;;;;;;;;;;;;;;;; PERMUTATIONS
 
-;; Originally written in Clojure by Andy Fingerhut & Stuart Halloway
+;; This part originally written in Clojure by Andy Fingerhut & Stuart Halloway
 
 ;; just holds a permutation: state, sign and count array
 (struct perm (p s c))
-(define (print-perm x) (printf "~a\t~a\t~a\n" (perm-p x) (perm-s x) (perm-c x)))
 
 ;; initializes n-1 permutations - this will be used for parallelization
 ;; isn't actually used in the serial implementation
-(define (init-permutations n)
-  (let ([n-1 (sub1 n)])
-    (define (ip-iter i p c all)      
-      (if (= i n)
-          all
-          (let ([p2 (rotate-left-first-n p n)]
-                [c2 (sub1-at-index c n-1)])
-            (ip-iter (add1 i) p2 c2 (append all (list (perm p2 1 c2)))))))    
-    (let ([p0 (build-list n (λ (x) (+ 1 x)))] 
-          [c0 (build-list n (λ (x) (+ 1 x)))])             
-      (ip-iter 1 p0 c0 (list (perm p0 1 c0))))))
+;(define (init-permutations n)
+;  (let ([n-1 (sub1 n)])
+;    (define (ip-iter i p c all)      
+;      (if (= i n)
+;          all
+;          (let ([p2 (rotate-left-first-n p n)]
+;                [c2 (sub1-at-index c n-1)])
+;            (ip-iter (add1 i) p2 c2 (append all (list (perm p2 1 c2)))))))    
+;    (let ([p0 (build-list n (λ (x) (+ 1 x)))] 
+;          [c0 (build-list n (λ (x) (+ 1 x)))])             
+;      (ip-iter 1 p0 c0 (list (perm p0 1 c0))))))
 
+;; generate the next permutation (has side effects!)
 ;; (-> exact-nonnegative-integer? perm? perm?)
-(define (next-permutation op)
+(define (next-permutation! op)  
   (if [negative? (perm-s op)]      
-      (let ([n (length (perm-p op))] ; n could be passed in as an argument, for a minute speedup
-            [spn (swap-at-indices (perm-p op) 1 2)])        
-        (define (np-iter i p c)
+      (let ([n (vector-length (perm-p op))])        
+        (define (np-iter! i p c)          
           (cond [(= i n) (perm p 1 c)] ; return (new perm, old count)
-                [(not (= (list-ref c i) 1)) (perm p 1 (sub1-at-index c i))] ; sub1 from count index j, return (new perm, new count)
+                [(not (= (vector-ref c i) 1)) (perm p 1 (sub1-at-index! c i))] ; sub1 from count index j, return (new perm, new count)
                 [(= i (sub1 n)) #f] ; no more permutations
                 [else 
-                 (let ([i+1 (add1 i)])                        
-                   (np-iter i+1 (rotate-left-first-n p (add1 i+1)) (set-at-index c i i+1)))]))
-        (np-iter 2 spn (perm-c op)))
-      (perm (swap-at-indices (perm-p op) 0 1) -1 (perm-c op))))
+                 (let ([i+1 (add1 i)])                   
+                   (np-iter! i+1 (rotate-left-first-n! p (add1 i+1)) (set-at-index! c i i+1)))]))
+        (np-iter! 2 (swap-at-indices! (perm-p op) 1 2) (perm-c op)))      
+      (perm (swap-at-indices! (perm-p op) 0 1) -1 (perm-c op))))
 
 ;; return list that is identical to lst but with 1 subtracted from the nth element
 ;; (-> (listof number?) number? (listof number?))
-(define (apply-to-index proc lst index)
-  (append (take lst index) 
-          (list (proc (list-ref lst index))) 
-          (drop lst (add1 index))))
+(define (apply-to-index! proc v index)
+  (begin 
+    (vector-set! v index (proc (vector-ref v index)))
+    v))
 
-(define (sub1-at-index lst index)
-  (apply-to-index sub1 lst index))
-
-(define (add1-at-index lst index)
-  (apply-to-index add1 lst index))
+(define (sub1-at-index! c i)
+  (apply-to-index! sub1 c i))
 
 ;; straightforward, get a copy of list with val at index set to new val
-(define (set-at-index lst index val)
-  (append (take lst index) 
-          (list val) 
-          (drop lst (add1 index))))
+(define (set-at-index! v i j)
+  (begin (vector-set! v i j) v))
 
 ;; (-> (listof number?) number? (listof number?)) 
-(define (rotate-left-first-n p n) 
-  (append (cdr (take p n)) (list (car p)) (drop p n)))
+(define (rotate-left-first-n! v n)
+  (let ([temp (vector-ref v 0)])
+    (vector-copy! v 0 v 1 n)
+    (vector-set! v (sub1 n) temp)
+    v))
 
 ;; returns array but with swapped values at indices
 ;; (-> list? exact-nonnegative-integer? exact-nonnegative-integer? list?)
-(define (swap-at-indices p i j)
-  (let* ([a (min i j)]
-         [b (max i j)]
-         [head (take p a)]
-         [middle (cdr (drop (take p b) a))]
-         [end (cdr (drop p b))])         
-    (append head
-            (list (list-ref p b))
-            middle
-            (list (list-ref p a))
-            end)))
+(define (swap-at-indices! v i j)
+  (let ([temp (vector-ref v i)])
+    (vector-set! v i (vector-ref v j))
+    (vector-set! v j temp)
+    v))
+
 
 
 ;;;;;;;;;;;;;;;;;; PANCAKE FLIPPING
@@ -111,21 +103,30 @@
 (define (pfannkuchen n)
   (if [< n 3] 
       #f
-      (let ([lst (build-list n (λ (x) (add1 x)))])
-        (define (pf-iter p checksum maxflips)
+      (let ([orig-p (build-vector n (λ (x) (add1 x)))]
+            [orig-c (build-vector n (λ (x) (add1 x)))])
+        (define (pf-iter p checksum maxflips)          
           (if [not p]
               (begin                
                 (printf "~a~nPfannkuchen(~a) = ~a~n" checksum n maxflips)
                 (cons checksum maxflips))              
-              (let ([flips (fannkuch (perm-p p))])
-                (pf-iter (next-permutation p)
+              (let ([flips (fannkuch (vector->list (perm-p p)))])
+                (pf-iter (next-permutation! p)
                          ((if [> (perm-s p) 0] + -) checksum flips)
                          (if [> flips maxflips] flips maxflips)))))  
-        (pf-iter (perm lst 1 lst) 0 0))))
+        (pf-iter (perm orig-p 1 orig-c) 0 0))))
 
-(pfannkuchen (command-line #:program "pfannkuchen"
-                           #:args (n)
-                           (string->number n)))
+(time (pfannkuchen (command-line #:program "pfannkuchen"
+                                 #:args (n)
+                                 (string->number n))))
+
+;; test-times Intel Corei5, OS X Lion (MBP 2011)
+;; shows that mutable permutation version is slightly faster
+;; n : mut, immut
+;; 12: 901s, 1038s
+;; 11: 65s, 81s
+;; 10 : 4.8s, 6.3s
+;; 9 : 0.4s, 0.6s
 
 
 ;; Test timings on an Intel Core i3, Win 7 (Dell Studio 1558)
