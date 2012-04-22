@@ -22,7 +22,7 @@
 (struct perm (p s c))
 
 ;; initializes n-1 permutations - used for parallelization
-;; isn't actually used in the serial implementation
+;; isn't used in the serial implementation
 (define (init-permutations! n)
   (let ([n-1 (sub1 n)])
     (define (ip-iter i p c all)      
@@ -87,6 +87,8 @@
           [else (f-iter (sub1 y) (* y result))]))
   (f-iter x 1))
 
+
+
 ;;;;;;;;;;;;;;;;;; PANCAKE FLIPPING
 
 ;; perform flipping on a single permutation, return number of flips
@@ -104,7 +106,9 @@
           (multi-flip (single-flip lst (drop lst l) l) (add1 number-of-flips)))))  
   (multi-flip input 0))
 
-;;;;;;;;;;;;;;;;;; MAIN
+
+
+;;;;;;;;;;;;;;;;;; MAIN - SERIAL VERSION
 
 (define (pfannkuchen n)
   (if [< n 3] 
@@ -122,9 +126,20 @@
                          (if [> flips maxflips] flips maxflips)))))  
         (pf-iter (perm orig-p 1 orig-c) 0 0))))
 
-;; parallel version 
 
-;; parallel version auxiliaries
+;;;;;;;;;;;;;;;;;; MAIN - PARALLEL VERSION
+
+(define (parallel-pfannkuchen n)
+  (let* ([n-1! (factorial (sub1 z))]
+         [initials (init-permutations! z)]
+         [f (map (λ (x) (future (λ () (limited-pfannkuchen x n-1!)))) initials)]
+         [para (map touch f)]
+         [checksum (foldl (λ (x y) (+ (car x) y)) 0 para)]
+         [maxflips (apply max (map cdr para))])
+    (printf "~a~nPfannkuchen(~a) = ~a~n" checksum n maxflips)
+    (cons checksum maxflips)))
+
+;; auxiliary for parallel
 (define (limited-pfannkuchen op limit)
   (define (pf-iter p checksum maxflips count)          
     (if [or (not p) (>= count limit)]
@@ -136,58 +151,15 @@
                    (add1 count)))))  
   (pf-iter op 0 0 0))
 
-;; testing - it works
-(define (parts n)
-  (map
-   (λ (x) (limited-pfannkuchen x (factorial (sub1 n))))
-   (init-permutations! n)))
+;;;;;;;;;;; rough testing - it works
 
-(define z (command-line #:program "pfannkuchen"
-                        #:args (n)
-                        (string->number n)))
+(define z 
+  (command-line #:program "pfannkuchen"
+                #:args (n)
+                (string->number n)))
 
-(define ans (pfannkuchen z))
-(require rackunit)
-(check-equal? (foldl (λ (x y) (+ (car x) y)) 0 (parts z)) (car ans))
-(check-equal? (apply max (map cdr (parts z))) (cdr ans))
 
-(define (tasks n)
-  (map (λ (x) (future (λ () (limited-pfannkuchen x (factorial (sub1 n))))))
-       (init-permutations! n)))
-
-;; NOT parallel actually...
-(define para (map touch (tasks z)))
-
-(check-equal? (foldl (λ (x y) (+ (car x) y)) 0 para) (car ans))
-(check-equal? (apply max (map cdr para)) (cdr ans))
-
+;; apparently NOT working in parallel actually...
 (require lib/time)
 (time-repeat (pfannkuchen z) #:repeat 1)
-;(time-repeat (map touch (tasks z)) #:repeat 1)
-
-;; test-times Intel Corei5, OS X Lion (MBP 2011)
-;; shows that mutable permutation version is slightly faster
-;; n : mut, immut
-;; 12: 901s, 1038s
-;; 11: 65s, 81s, 
-;; 10 : 4.8s, 6.3s
-;; 9 : 0.4s, 0.6s
-
-;; TODO
-;; Parallelize this
-;; i.e. Make the job dividing function:
-;; For each of the n initial permutations generate the next (n-1)! permutations
-;; (combined, these should be the same as the whole list if gen'd from just 1 2 3...n).
-;; Checksum = sum of checksums of n separate (n-1)! permutations
-;; Max flips = max of max flips of n separate (n-1)! permutations
-;; 
-;; Pseudocode
-;; (parallel-map pfannkuchen-of-next-(n-1)!-permutations 
-;;               (init permutations n)) 
-;; --> (listof (cons checksum maxflips))
-;; ---> answers are (foldl + 0 n-checksums) (max n-maxflips)
-;; where pfannkuchen-of-next-(n-1)!-permutations is just pfannkuchen above,
-;; but limited to (n-1)! permutations
-;; Presumably some kind of concurrent mutable data structure will be required
-;; for the final step of adding the checksums and maxflips
-
+(time-repeat (parallel-pfannkuchen z) #:repeat 1)
